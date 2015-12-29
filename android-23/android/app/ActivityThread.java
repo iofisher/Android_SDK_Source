@@ -144,6 +144,7 @@ final class RemoteServiceException extends AndroidRuntimeException {
  * application process, scheduling and executing activities,
  * broadcasts, and other operations on it as the activity
  * manager requests.
+ *
  * 应用程序的主线程
  *
  * 负责调度执行activity，broadcast以及activity manager请求的其他操作。
