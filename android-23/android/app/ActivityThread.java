@@ -177,21 +177,21 @@ public final class ActivityThread {
     /** Type for IActivityManager.serviceDoneExecuting: done stopping (destroying) service */
     public static final int SERVICE_DONE_EXECUTING_STOP = 2;
 
-    private ContextImpl mSystemContext;
+    private ContextImpl mSystemContext;  // ContextImpl实例
 
-    static IPackageManager sPackageManager;
+    static IPackageManager sPackageManager;  // PackageManger实例
 
     final ApplicationThread mAppThread = new ApplicationThread();
     final Looper mLooper = Looper.myLooper();
     final H mH = new H();
-    final ArrayMap<IBinder, ActivityClientRecord> mActivities = new ArrayMap<>();
+    final ArrayMap<IBinder, ActivityClientRecord> mActivities = new ArrayMap<>();  // 通过ArrayMap存储Activity集合
     // List of new activities (via ActivityRecord.nextIdle) that should
     // be reported when next we idle.
     ActivityClientRecord mNewActivities = null;
     // Number of activities that are currently visible on-screen.
     int mNumVisibleActivities = 0;
     WeakReference<AssistStructure> mLastAssistStructure;
-    final ArrayMap<IBinder, Service> mServices = new ArrayMap<>();
+    final ArrayMap<IBinder, Service> mServices = new ArrayMap<>(); // 通过ArrayMap存储Service
     AppBindData mBoundApplication;
     Profiler mProfiler;
     int mCurDefaultDisplayDpi;
@@ -775,7 +775,7 @@ public final class ActivityThread {
                 IUiAutomationConnection instrumentationUiConnection, int debugMode,
                 boolean enableOpenGlTrace, boolean isRestrictedBackupMode, boolean persistent,
                 Configuration config, CompatibilityInfo compatInfo, Map<String, IBinder> services,
-                Bundle coreSettings) {
+                Bundle coreSettings) { // 绑定Application
 
             if (services != null) {
                 // Setup the service cache in the ServiceManager
@@ -1853,6 +1853,7 @@ public final class ActivityThread {
     }
 
     ActivityThread() {
+        // 获取ResourceManager
         mResourcesManager = android.app.ResourcesManager.getInstance();
     }
 
@@ -5231,6 +5232,7 @@ public final class ActivityThread {
         return retHolder;
     }
 
+    // 初始化应用信息
     private void attach(boolean system) {
         sCurrentActivityThread = this;
         mSystemThread = system;
@@ -5244,8 +5246,10 @@ public final class ActivityThread {
             android.ddm.DdmHandleAppName.setAppName("<pre-initialized>",
                                                     UserHandle.myUserId());
             RuntimeInit.setApplicationObject(mAppThread.asBinder());
+            // 获得IActivityManager(其实现者为ActivityMangerNative)
             final android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
             try {
+                // 绑定Application（mAppThread 实现IApplicationThread）
                 mgr.attachApplication(mAppThread);
             } catch (RemoteException ex) {
                 // Ignore
@@ -5260,6 +5264,7 @@ public final class ActivityThread {
                     long dalvikMax = runtime.maxMemory();
                     long dalvikUsed = runtime.totalMemory() - runtime.freeMemory();
                     if (dalvikUsed > ((3*dalvikMax)/4)) {
+                        // 当使用的dalvik内存超过最大dalvik空间的3/4时，开始释放应用空间
                         if (DEBUG_MEMORY_TRIM) Slog.d(TAG, "Dalvik max=" + (dalvikMax/1024)
                                 + " total=" + (runtime.totalMemory()/1024)
                                 + " used=" + (dalvikUsed/1024));
@@ -5280,7 +5285,10 @@ public final class ActivityThread {
                 mInstrumentation = new Instrumentation();
                 ContextImpl context = ContextImpl.createAppContext(
                         this, getSystemContext().mPackageInfo);
+                // context.mPackageInfo为LoadedApk
+                // 利用ContextImpl创建整个应用的Application对象
                 mInitialApplication = context.mPackageInfo.makeApplication(true, null);
+                // 调用Application对象的onCreate方法
                 mInitialApplication.onCreate();
             } catch (Exception e) {
                 throw new RuntimeException(
@@ -5382,6 +5390,7 @@ public final class ActivityThread {
 
     public static void main(String[] args) {
         Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "ActivityThreadMain");
+        // 启动性能统计
         SamplingProfilerIntegration.start();
 
         // CloseGuard defaults to true and can be quite spammy.  We
@@ -5389,24 +5398,31 @@ public final class ActivityThread {
         // StrictMode) on debug builds, but using DropBox, not logs.
         CloseGuard.setEnabled(false);
 
+        // 初始化当前用户文件系统环境
         Environment.initForCurrentUser();
 
         // Set the reporter for event logging in libcore
         EventLogger.setReporter(new EventLoggingReporter());
 
+        // 提供Android KeyStore数据
         AndroidKeyStoreProvider.install();
 
         // Make sure TrustedCertificateStore looks in the right place for CA certificates
         final File configDir = Environment.getUserConfigDirectory(UserHandle.myUserId());
+        // 路径 /data/misc/user/xx
         TrustedCertificateStore.setDefaultUserDirectory(configDir);
 
         Process.setArgV0("<pre-initialized>");
 
+        // 初始化Looper
         Looper.prepareMainLooper();
 
+        // 创建APP主线程ActivityThread对象（获取ResourceMangager）
         ActivityThread thread = new ActivityThread();
+        // 初始化App应用信息
         thread.attach(false);
 
+        // 获得主线程Handler
         if (sMainThreadHandler == null) {
             sMainThreadHandler = thread.getHandler();
         }
@@ -5418,6 +5434,8 @@ public final class ActivityThread {
 
         // End of event ActivityThreadMain.
         Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+
+        // 启动Looper循环，进入消息循环
         Looper.loop();
 
         throw new RuntimeException("Main thread loop unexpectedly exited");

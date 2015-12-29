@@ -81,7 +81,7 @@ public final class LoadedApk {
 
     private static final String TAG = "LoadedApk";
 
-    private final ActivityThread mActivityThread;
+    private final android.app.ActivityThread mActivityThread;
     private ApplicationInfo mApplicationInfo;
     final String mPackageName;
     private final String mAppDir;
@@ -123,7 +123,7 @@ public final class LoadedApk {
      * NOTE: This constructor is called with ActivityThread's lock held,
      * so MUST NOT call back out to the activity manager.
      */
-    public LoadedApk(ActivityThread activityThread, ApplicationInfo aInfo,
+    public LoadedApk(android.app.ActivityThread activityThread, ApplicationInfo aInfo,
             CompatibilityInfo compatInfo, ClassLoader baseLoader,
             boolean securityViolation, boolean includeCode, boolean registerPackage) {
         final int myUid = Process.myUid();
@@ -179,7 +179,7 @@ public final class LoadedApk {
      * Create information about the system package.
      * Must call {@link #installSystemApplicationInfo} later.
      */
-    LoadedApk(ActivityThread activityThread) {
+    LoadedApk(android.app.ActivityThread activityThread) {
         mActivityThread = activityThread;
         mApplicationInfo = new ApplicationInfo();
         mApplicationInfo.packageName = "android";
@@ -242,7 +242,7 @@ public final class LoadedApk {
     private static String[] getLibrariesFor(String packageName) {
         ApplicationInfo ai = null;
         try {
-            ai = ActivityThread.getPackageManager().getApplicationInfo(packageName,
+            ai = android.app.ActivityThread.getPackageManager().getApplicationInfo(packageName,
                     PackageManager.GET_SHARED_LIBRARY_FILES, UserHandle.myUserId());
         } catch (RemoteException e) {
             throw new AssertionError(e);
@@ -265,10 +265,10 @@ public final class LoadedApk {
                 // Avoid the binder call when the package is the current application package.
                 // The activity manager will perform ensure that dexopt is performed before
                 // spinning up the process.
-                if (!Objects.equals(mPackageName, ActivityThread.currentPackageName())) {
+                if (!Objects.equals(mPackageName, android.app.ActivityThread.currentPackageName())) {
                     final String isa = VMRuntime.getRuntime().vmInstructionSet();
                     try {
-                        ActivityThread.getPackageManager().performDexOptIfNeeded(mPackageName, isa);
+                        android.app.ActivityThread.getPackageManager().performDexOptIfNeeded(mPackageName, isa);
                     } catch (RemoteException re) {
                         // Ignored.
                     }
@@ -280,7 +280,7 @@ public final class LoadedApk {
 
                 if (mRegisterPackage) {
                     try {
-                        ActivityManagerNative.getDefault().addPackageDependency(mPackageName);
+                        android.app.ActivityManagerNative.getDefault().addPackageDependency(mPackageName);
                     } catch (RemoteException e) {
                     }
                 }
@@ -366,8 +366,8 @@ public final class LoadedApk {
                  * create the class loader.
                  */
 
-                if (ActivityThread.localLOGV)
-                    Slog.v(ActivityThread.TAG, "Class path: " + zip + ", JNI path: " + lib);
+                if (android.app.ActivityThread.localLOGV)
+                    Slog.v(android.app.ActivityThread.TAG, "Class path: " + zip + ", JNI path: " + lib);
 
                 // Temporarily disable logging of disk reads on the Looper thread
                 // as this is early and necessary.
@@ -412,7 +412,7 @@ public final class LoadedApk {
      * Java library that expects it to be set.
      */
     private void initializeJavaContextClassLoader() {
-        IPackageManager pm = ActivityThread.getPackageManager();
+        IPackageManager pm = android.app.ActivityThread.getPackageManager();
         android.content.pm.PackageInfo pi;
         try {
             pi = pm.getPackageInfo(mPackageName, 0, UserHandle.myUserId());
@@ -458,7 +458,7 @@ public final class LoadedApk {
             }
             warned = true;
             Thread.currentThread().setContextClassLoader(getParent());
-            Slog.w(ActivityThread.TAG, "ClassLoader." + methodName + ": " +
+            Slog.w(android.app.ActivityThread.TAG, "ClassLoader." + methodName + ": " +
                   "The class loader returned by " +
                   "Thread.getContextClassLoader() may fail for processes " +
                   "that host multiple applications. You should explicitly " +
@@ -539,11 +539,11 @@ public final class LoadedApk {
         return mDataDirFile;
     }
 
-    public AssetManager getAssets(ActivityThread mainThread) {
+    public AssetManager getAssets(android.app.ActivityThread mainThread) {
         return getResources(mainThread).getAssets();
     }
 
-    public Resources getResources(ActivityThread mainThread) {
+    public Resources getResources(android.app.ActivityThread mainThread) {
         if (mResources == null) {
             mResources = mainThread.getTopLevelResources(mResDir, mSplitResDirs, mOverlayDirs,
                     mApplicationInfo.sharedLibraryFiles, Display.DEFAULT_DISPLAY, null, this);
@@ -569,9 +569,12 @@ public final class LoadedApk {
             if (!mPackageName.equals("android")) {
                 initializeJavaContextClassLoader();
             }
+            // 为Appliaction创建ContextImpl对象
             ContextImpl appContext = ContextImpl.createAppContext(mActivityThread, this);
+            // 调用Instrumentation类中的newApplication方法创建Application
             app = mActivityThread.mInstrumentation.newApplication(
                     cl, appClass, appContext);
+            // 给ContextImpl设置外部引用
             appContext.setOuterContext(app);
         } catch (Exception e) {
             if (!mActivityThread.mInstrumentation.onException(app, e)) {
@@ -659,12 +662,12 @@ public final class LoadedApk {
                             "originally registered here. Are you missing a " +
                             "call to unregisterReceiver()?");
                     leak.setStackTrace(rd.getLocation().getStackTrace());
-                    Slog.e(ActivityThread.TAG, leak.getMessage(), leak);
+                    Slog.e(android.app.ActivityThread.TAG, leak.getMessage(), leak);
                     if (reportRegistrationLeaks) {
                         StrictMode.onIntentReceiverLeaked(leak);
                     }
                     try {
-                        ActivityManagerNative.getDefault().unregisterReceiver(
+                        android.app.ActivityManagerNative.getDefault().unregisterReceiver(
                                 rd.getIIntentReceiver());
                     } catch (RemoteException e) {
                         // system crashed, nothing we can do
@@ -685,12 +688,12 @@ public final class LoadedApk {
                             what + " " + who + " has leaked ServiceConnection "
                             + sd.getServiceConnection() + " that was originally bound here");
                     leak.setStackTrace(sd.getLocation().getStackTrace());
-                    Slog.e(ActivityThread.TAG, leak.getMessage(), leak);
+                    Slog.e(android.app.ActivityThread.TAG, leak.getMessage(), leak);
                     if (reportRegistrationLeaks) {
                         StrictMode.onServiceConnectionLeaked(leak);
                     }
                     try {
-                        ActivityManagerNative.getDefault().unbindService(
+                        android.app.ActivityManagerNative.getDefault().unbindService(
                                 sd.getIServiceConnection());
                     } catch (RemoteException e) {
                         // system crashed, nothing we can do
@@ -796,9 +799,9 @@ public final class LoadedApk {
             public void performReceive(Intent intent, int resultCode, String data,
                     Bundle extras, boolean ordered, boolean sticky, int sendingUser) {
                 LoadedApk.ReceiverDispatcher rd = mDispatcher.get();
-                if (ActivityThread.DEBUG_BROADCAST) {
+                if (android.app.ActivityThread.DEBUG_BROADCAST) {
                     int seq = intent.getIntExtra("seq", -1);
-                    Slog.i(ActivityThread.TAG, "Receiving broadcast " + intent.getAction() + " seq=" + seq
+                    Slog.i(android.app.ActivityThread.TAG, "Receiving broadcast " + intent.getAction() + " seq=" + seq
                             + " to " + (rd != null ? rd.mReceiver : null));
                 }
                 if (rd != null) {
@@ -809,16 +812,16 @@ public final class LoadedApk {
                     // receiver in this process, but before it could be delivered the
                     // receiver was unregistered.  Acknowledge the broadcast on its
                     // behalf so that the system's broadcast sequence can continue.
-                    if (ActivityThread.DEBUG_BROADCAST) Slog.i(ActivityThread.TAG,
+                    if (android.app.ActivityThread.DEBUG_BROADCAST) Slog.i(android.app.ActivityThread.TAG,
                             "Finishing broadcast to unregistered receiver");
-                    IActivityManager mgr = ActivityManagerNative.getDefault();
+                    android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
                     try {
                         if (extras != null) {
                             extras.setAllowFds(false);
                         }
                         mgr.finishReceiver(this, resultCode, data, extras, false, intent.getFlags());
                     } catch (RemoteException e) {
-                        Slog.w(ActivityThread.TAG, "Couldn't finish broadcast to unregistered receiver");
+                        Slog.w(android.app.ActivityThread.TAG, "Couldn't finish broadcast to unregistered receiver");
                     }
                 }
             }
@@ -851,21 +854,21 @@ public final class LoadedApk {
                 final BroadcastReceiver receiver = mReceiver;
                 final boolean ordered = mOrdered;
                 
-                if (ActivityThread.DEBUG_BROADCAST) {
+                if (android.app.ActivityThread.DEBUG_BROADCAST) {
                     int seq = mCurIntent.getIntExtra("seq", -1);
-                    Slog.i(ActivityThread.TAG, "Dispatching broadcast " + mCurIntent.getAction()
+                    Slog.i(android.app.ActivityThread.TAG, "Dispatching broadcast " + mCurIntent.getAction()
                             + " seq=" + seq + " to " + mReceiver);
-                    Slog.i(ActivityThread.TAG, "  mRegistered=" + mRegistered
+                    Slog.i(android.app.ActivityThread.TAG, "  mRegistered=" + mRegistered
                             + " mOrderedHint=" + ordered);
                 }
                 
-                final IActivityManager mgr = ActivityManagerNative.getDefault();
+                final android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
                 final Intent intent = mCurIntent;
                 mCurIntent = null;
                 
                 if (receiver == null || mForgotten) {
                     if (mRegistered && ordered) {
-                        if (ActivityThread.DEBUG_BROADCAST) Slog.i(ActivityThread.TAG,
+                        if (android.app.ActivityThread.DEBUG_BROADCAST) Slog.i(android.app.ActivityThread.TAG,
                                 "Finishing null broadcast to " + mReceiver);
                         sendFinished(mgr);
                     }
@@ -881,7 +884,7 @@ public final class LoadedApk {
                     receiver.onReceive(mContext, intent);
                 } catch (Exception e) {
                     if (mRegistered && ordered) {
-                        if (ActivityThread.DEBUG_BROADCAST) Slog.i(ActivityThread.TAG,
+                        if (android.app.ActivityThread.DEBUG_BROADCAST) Slog.i(android.app.ActivityThread.TAG,
                                 "Finishing failed broadcast to " + mReceiver);
                         sendFinished(mgr);
                     }
@@ -955,17 +958,17 @@ public final class LoadedApk {
 
         public void performReceive(Intent intent, int resultCode, String data,
                 Bundle extras, boolean ordered, boolean sticky, int sendingUser) {
-            if (ActivityThread.DEBUG_BROADCAST) {
+            if (android.app.ActivityThread.DEBUG_BROADCAST) {
                 int seq = intent.getIntExtra("seq", -1);
-                Slog.i(ActivityThread.TAG, "Enqueueing broadcast " + intent.getAction() + " seq=" + seq
+                Slog.i(android.app.ActivityThread.TAG, "Enqueueing broadcast " + intent.getAction() + " seq=" + seq
                         + " to " + mReceiver);
             }
             Args args = new Args(intent, resultCode, data, extras, ordered,
                     sticky, sendingUser);
             if (!mActivityThread.post(args)) {
                 if (mRegistered && ordered) {
-                    IActivityManager mgr = ActivityManagerNative.getDefault();
-                    if (ActivityThread.DEBUG_BROADCAST) Slog.i(ActivityThread.TAG,
+                    android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
+                    if (android.app.ActivityThread.DEBUG_BROADCAST) Slog.i(android.app.ActivityThread.TAG,
                             "Finishing sync broadcast to " + mReceiver);
                     args.sendFinished(mgr);
                 }
