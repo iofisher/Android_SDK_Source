@@ -144,6 +144,9 @@ final class RemoteServiceException extends AndroidRuntimeException {
  * application process, scheduling and executing activities,
  * broadcasts, and other operations on it as the activity
  * manager requests.
+ * 应用程序的主线程
+ *
+ * 负责调度执行activity，broadcast以及activity manager请求的其他操作。
  *
  * {@hide}
  */
@@ -222,15 +225,15 @@ public final class ActivityThread {
     // holds their own lock.  Thus you MUST NEVER call back into the activity manager
     // or window manager or anything that depends on them while holding this lock.
     // These LoadedApk are only valid for the userId that we're running as.
-    final ArrayMap<String, WeakReference<LoadedApk>> mPackages
-            = new ArrayMap<String, WeakReference<LoadedApk>>();
-    final ArrayMap<String, WeakReference<LoadedApk>> mResourcePackages
-            = new ArrayMap<String, WeakReference<LoadedApk>>();
+    final ArrayMap<String, WeakReference<android.app.LoadedApk>> mPackages
+            = new ArrayMap<String, WeakReference<android.app.LoadedApk>>();
+    final ArrayMap<String, WeakReference<android.app.LoadedApk>> mResourcePackages
+            = new ArrayMap<String, WeakReference<android.app.LoadedApk>>();
     final ArrayList<ActivityClientRecord> mRelaunchingActivities
             = new ArrayList<ActivityClientRecord>();
     Configuration mPendingConfiguration = null;
 
-    private final ResourcesManager mResourcesManager;
+    private final android.app.ResourcesManager mResourcesManager;
 
     private static final class ProviderKey {
         final String authority;
@@ -266,8 +269,8 @@ public final class ActivityThread {
     final ArrayMap<ComponentName, ProviderClientRecord> mLocalProvidersByName
             = new ArrayMap<ComponentName, ProviderClientRecord>();
 
-    final ArrayMap<Activity, ArrayList<OnActivityPausedListener>> mOnPauseListeners
-        = new ArrayMap<Activity, ArrayList<OnActivityPausedListener>>();
+    final ArrayMap<Activity, ArrayList<android.app.OnActivityPausedListener>> mOnPauseListeners
+        = new ArrayMap<Activity, ArrayList<android.app.OnActivityPausedListener>>();
 
     final GcIdler mGcIdler = new GcIdler();
     boolean mGcIdlerScheduled = false;
@@ -299,13 +302,13 @@ public final class ActivityThread {
         private Configuration tmpConfig = new Configuration();
         ActivityClientRecord nextIdle;
 
-        ProfilerInfo profilerInfo;
+        android.app.ProfilerInfo profilerInfo;
 
         ActivityInfo activityInfo;
         CompatibilityInfo compatInfo;
-        LoadedApk packageInfo;
+        android.app.LoadedApk packageInfo;
 
-        List<ResultInfo> pendingResults;
+        List<android.app.ResultInfo> pendingResults;
         List<ReferrerIntent> pendingIntents;
 
         boolean startsNotResumed;
@@ -351,11 +354,11 @@ public final class ActivityThread {
         final String[] mNames;
         final IContentProvider mProvider;
         final ContentProvider mLocalProvider;
-        final IActivityManager.ContentProviderHolder mHolder;
+        final android.app.IActivityManager.ContentProviderHolder mHolder;
 
         ProviderClientRecord(String[] names, IContentProvider provider,
                 ContentProvider localProvider,
-                IActivityManager.ContentProviderHolder holder) {
+                android.app.IActivityManager.ContentProviderHolder holder) {
             mNames = names;
             mProvider = provider;
             mLocalProvider = localProvider;
@@ -435,7 +438,7 @@ public final class ActivityThread {
     }
 
     static final class AppBindData {
-        LoadedApk info;
+        android.app.LoadedApk info;
         String processName;
         ApplicationInfo appInfo;
         List<ProviderInfo> providers;
@@ -451,7 +454,7 @@ public final class ActivityThread {
         CompatibilityInfo compatInfo;
 
         /** Initial values for {@link Profiler}. */
-        ProfilerInfo initProfilerInfo;
+        android.app.ProfilerInfo initProfilerInfo;
 
         public String toString() {
             return "AppBindData{appInfo=" + appInfo + "}";
@@ -465,7 +468,7 @@ public final class ActivityThread {
         boolean autoStopProfiler;
         boolean profiling;
         boolean handlingProfiling;
-        public void setProfiler(ProfilerInfo profilerInfo) {
+        public void setProfiler(android.app.ProfilerInfo profilerInfo) {
             ParcelFileDescriptor fd = profilerInfo.profileFd;
             if (profiling) {
                 if (fd != null) {
@@ -532,7 +535,7 @@ public final class ActivityThread {
 
     static final class ResultData {
         IBinder token;
-        List<ResultInfo> results;
+        List<android.app.ResultInfo> results;
         public String toString() {
             return "ResultData{token=" + token + " results" + results + "}";
         }
@@ -571,7 +574,7 @@ public final class ActivityThread {
 
     private native void dumpGraphicsInfo(FileDescriptor fd);
 
-    private class ApplicationThread extends ApplicationThreadNative {
+    private class ApplicationThread extends android.app.ApplicationThreadNative {
         private static final String DB_INFO_FORMAT = "  %8s %8s %14s %14s  %s";
 
         private int mLastProcessState = -1;
@@ -617,7 +620,7 @@ public final class ActivityThread {
             sendMessage(H.RESUME_ACTIVITY, token, isForward ? 1 : 0);
         }
 
-        public final void scheduleSendResult(IBinder token, List<ResultInfo> results) {
+        public final void scheduleSendResult(IBinder token, List<android.app.ResultInfo> results) {
             ResultData res = new ResultData();
             res.token = token;
             res.results = results;
@@ -631,8 +634,8 @@ public final class ActivityThread {
                 ActivityInfo info, Configuration curConfig, Configuration overrideConfig,
                 CompatibilityInfo compatInfo, String referrer, IVoiceInteractor voiceInteractor,
                 int procState, Bundle state, PersistableBundle persistentState,
-                List<ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
-                boolean notResumed, boolean isForward, ProfilerInfo profilerInfo) {
+                List<android.app.ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
+                boolean notResumed, boolean isForward, android.app.ProfilerInfo profilerInfo) {
 
             updateProcessState(procState, false);
 
@@ -664,7 +667,7 @@ public final class ActivityThread {
 
         @Override
         public final void scheduleRelaunchActivity(IBinder token,
-                List<ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
+                List<android.app.ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
                 int configChanges, boolean notResumed, Configuration config,
                 Configuration overrideConfig) {
             requestRelaunchActivity(token, pendingResults, pendingNewIntents,
@@ -766,7 +769,7 @@ public final class ActivityThread {
 
         public final void bindApplication(String processName, ApplicationInfo appInfo,
                 List<ProviderInfo> providers, ComponentName instrumentationName,
-                ProfilerInfo profilerInfo, Bundle instrumentationArgs,
+                android.app.ProfilerInfo profilerInfo, Bundle instrumentationArgs,
                 IInstrumentationWatcher instrumentationWatcher,
                 IUiAutomationConnection instrumentationUiConnection, int debugMode,
                 boolean enableOpenGlTrace, boolean isRestrictedBackupMode, boolean persistent,
@@ -911,7 +914,7 @@ public final class ActivityThread {
         }
 
         @Override
-        public void profilerControl(boolean start, ProfilerInfo profilerInfo, int profileType) {
+        public void profilerControl(boolean start, android.app.ProfilerInfo profilerInfo, int profileType) {
             sendMessage(H.PROFILER_CONTROL, profilerInfo, start ? 1 : 0, profileType);
         }
 
@@ -1475,7 +1478,7 @@ public final class ActivityThread {
                     Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
                     break;
                 case PROFILER_CONTROL:
-                    handleProfilerControl(msg.arg1 != 0, (ProfilerInfo)msg.obj, msg.arg2);
+                    handleProfilerControl(msg.arg1 != 0, (android.app.ProfilerInfo)msg.obj, msg.arg2);
                     break;
                 case CREATE_BACKUP_AGENT:
                     Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "backupCreateAgent");
@@ -1599,7 +1602,7 @@ public final class ActivityThread {
             }
             if (a != null) {
                 mNewActivities = null;
-                IActivityManager am = ActivityManagerNative.getDefault();
+                android.app.IActivityManager am = android.app.ActivityManagerNative.getDefault();
                 ActivityClientRecord prev;
                 do {
                     if (localLOGV) Slog.v(
@@ -1697,7 +1700,7 @@ public final class ActivityThread {
      */
     Resources getTopLevelResources(String resDir, String[] splitResDirs, String[] overlayDirs,
             String[] libDirs, int displayId, Configuration overrideConfiguration,
-            LoadedApk pkgInfo) {
+            android.app.LoadedApk pkgInfo) {
         return mResourcesManager.getTopLevelResources(resDir, splitResDirs, overlayDirs, libDirs,
                 displayId, overrideConfiguration, pkgInfo.getCompatibilityInfo());
     }
@@ -1706,16 +1709,16 @@ public final class ActivityThread {
         return mH;
     }
 
-    public final LoadedApk getPackageInfo(String packageName, CompatibilityInfo compatInfo,
+    public final android.app.LoadedApk getPackageInfo(String packageName, CompatibilityInfo compatInfo,
             int flags) {
         return getPackageInfo(packageName, compatInfo, flags, UserHandle.myUserId());
     }
 
-    public final LoadedApk getPackageInfo(String packageName, CompatibilityInfo compatInfo,
+    public final android.app.LoadedApk getPackageInfo(String packageName, CompatibilityInfo compatInfo,
             int flags, int userId) {
         final boolean differentUser = (UserHandle.myUserId() != userId);
         synchronized (mResourcesManager) {
-            WeakReference<LoadedApk> ref;
+            WeakReference<android.app.LoadedApk> ref;
             if (differentUser) {
                 // Caching not supported across users
                 ref = null;
@@ -1725,7 +1728,7 @@ public final class ActivityThread {
                 ref = mResourcePackages.get(packageName);
             }
 
-            LoadedApk packageInfo = ref != null ? ref.get() : null;
+            android.app.LoadedApk packageInfo = ref != null ? ref.get() : null;
             //Slog.i(TAG, "getPackageInfo " + packageName + ": " + packageInfo);
             //if (packageInfo != null) Slog.i(TAG, "isUptoDate " + packageInfo.mResDir
             //        + ": " + packageInfo.mResources.getAssets().isUpToDate());
@@ -1758,7 +1761,7 @@ public final class ActivityThread {
         return null;
     }
 
-    public final LoadedApk getPackageInfo(ApplicationInfo ai, CompatibilityInfo compatInfo,
+    public final android.app.LoadedApk getPackageInfo(ApplicationInfo ai, CompatibilityInfo compatInfo,
             int flags) {
         boolean includeCode = (flags&Context.CONTEXT_INCLUDE_CODE) != 0;
         boolean securityViolation = includeCode && ai.uid != 0
@@ -1784,14 +1787,14 @@ public final class ActivityThread {
                 registerPackage);
     }
 
-    public final LoadedApk getPackageInfoNoCheck(ApplicationInfo ai,
+    public final android.app.LoadedApk getPackageInfoNoCheck(ApplicationInfo ai,
             CompatibilityInfo compatInfo) {
         return getPackageInfo(ai, compatInfo, null, false, true, false);
     }
 
-    public final LoadedApk peekPackageInfo(String packageName, boolean includeCode) {
+    public final android.app.LoadedApk peekPackageInfo(String packageName, boolean includeCode) {
         synchronized (mResourcesManager) {
-            WeakReference<LoadedApk> ref;
+            WeakReference<android.app.LoadedApk> ref;
             if (includeCode) {
                 ref = mPackages.get(packageName);
             } else {
@@ -1801,12 +1804,12 @@ public final class ActivityThread {
         }
     }
 
-    private LoadedApk getPackageInfo(ApplicationInfo aInfo, CompatibilityInfo compatInfo,
+    private android.app.LoadedApk getPackageInfo(ApplicationInfo aInfo, CompatibilityInfo compatInfo,
             ClassLoader baseLoader, boolean securityViolation, boolean includeCode,
             boolean registerPackage) {
         final boolean differentUser = (UserHandle.myUserId() != UserHandle.getUserId(aInfo.uid));
         synchronized (mResourcesManager) {
-            WeakReference<LoadedApk> ref;
+            WeakReference<android.app.LoadedApk> ref;
             if (differentUser) {
                 // Caching not supported across users
                 ref = null;
@@ -1816,7 +1819,7 @@ public final class ActivityThread {
                 ref = mResourcePackages.get(aInfo.packageName);
             }
 
-            LoadedApk packageInfo = ref != null ? ref.get() : null;
+            android.app.LoadedApk packageInfo = ref != null ? ref.get() : null;
             if (packageInfo == null || (packageInfo.mResources != null
                     && !packageInfo.mResources.getAssets().isUpToDate())) {
                 if (localLOGV) Slog.v(TAG, (includeCode ? "Loading code package "
@@ -1825,7 +1828,7 @@ public final class ActivityThread {
                                 ? mBoundApplication.processName : null)
                         + ")");
                 packageInfo =
-                    new LoadedApk(this, aInfo, compatInfo, baseLoader,
+                    new android.app.LoadedApk(this, aInfo, compatInfo, baseLoader,
                             securityViolation, includeCode &&
                             (aInfo.flags&ApplicationInfo.FLAG_HAS_CODE) != 0, registerPackage);
 
@@ -1838,10 +1841,10 @@ public final class ActivityThread {
                     // Caching not supported across users
                 } else if (includeCode) {
                     mPackages.put(aInfo.packageName,
-                            new WeakReference<LoadedApk>(packageInfo));
+                            new WeakReference<android.app.LoadedApk>(packageInfo));
                 } else {
                     mResourcePackages.put(aInfo.packageName,
-                            new WeakReference<LoadedApk>(packageInfo));
+                            new WeakReference<android.app.LoadedApk>(packageInfo));
                 }
             }
             return packageInfo;
@@ -1849,7 +1852,7 @@ public final class ActivityThread {
     }
 
     ActivityThread() {
-        mResourcesManager = ResourcesManager.getInstance();
+        mResourcesManager = android.app.ResourcesManager.getInstance();
     }
 
     public ApplicationThread getApplicationThread()
@@ -2181,11 +2184,11 @@ public final class ActivityThread {
     }
 
     public void registerOnActivityPausedListener(Activity activity,
-            OnActivityPausedListener listener) {
+            android.app.OnActivityPausedListener listener) {
         synchronized (mOnPauseListeners) {
-            ArrayList<OnActivityPausedListener> list = mOnPauseListeners.get(activity);
+            ArrayList<android.app.OnActivityPausedListener> list = mOnPauseListeners.get(activity);
             if (list == null) {
-                list = new ArrayList<OnActivityPausedListener>();
+                list = new ArrayList<android.app.OnActivityPausedListener>();
                 mOnPauseListeners.put(activity, list);
             }
             list.add(listener);
@@ -2193,9 +2196,9 @@ public final class ActivityThread {
     }
 
     public void unregisterOnActivityPausedListener(Activity activity,
-            OnActivityPausedListener listener) {
+            android.app.OnActivityPausedListener listener) {
         synchronized (mOnPauseListeners) {
-            ArrayList<OnActivityPausedListener> list = mOnPauseListeners.get(activity);
+            ArrayList<android.app.OnActivityPausedListener> list = mOnPauseListeners.get(activity);
             if (list != null) {
                 list.remove(listener);
             }
@@ -2249,8 +2252,8 @@ public final class ActivityThread {
             int resultCode, Intent data) {
         if (DEBUG_RESULTS) Slog.v(TAG, "sendActivityResult: id=" + id
                 + " req=" + requestCode + " res=" + resultCode + " data=" + data);
-        ArrayList<ResultInfo> list = new ArrayList<ResultInfo>();
-        list.add(new ResultInfo(id, requestCode, resultCode, data));
+        ArrayList<android.app.ResultInfo> list = new ArrayList<android.app.ResultInfo>();
+        list.add(new android.app.ResultInfo(id, requestCode, resultCode, data));
         mAppThread.scheduleSendResult(token, list);
     }
 
@@ -2425,7 +2428,7 @@ public final class ActivityThread {
     private Context createBaseContextForActivity(ActivityClientRecord r, final Activity activity) {
         int displayId = Display.DEFAULT_DISPLAY;
         try {
-            displayId = ActivityManagerNative.getDefault().getActivityDisplayId(r.token);
+            displayId = android.app.ActivityManagerNative.getDefault().getActivityDisplayId(r.token);
         } catch (RemoteException e) {
         }
 
@@ -2527,7 +2530,7 @@ public final class ActivityThread {
             // If there was an error, for any reason, tell the activity
             // manager to stop us.
             try {
-                ActivityManagerNative.getDefault()
+                android.app.ActivityManagerNative.getDefault()
                     .finishActivity(r.token, Activity.RESULT_CANCELED, null, false);
             } catch (RemoteException ex) {
                 // Ignore
@@ -2603,7 +2606,7 @@ public final class ActivityThread {
             structure = new AssistStructure();
         }
         mLastAssistStructure = new WeakReference<>(structure);
-        IActivityManager mgr = ActivityManagerNative.getDefault();
+        android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
         try {
             mgr.reportAssistContextExtras(cmd.requestToken, data, structure, content, referrer);
         } catch (RemoteException e) {
@@ -2641,7 +2644,7 @@ public final class ActivityThread {
             }
         }
         try {
-            ActivityManagerNative.getDefault().backgroundResourcesReleased(token);
+            android.app.ActivityManagerNative.getDefault().backgroundResourcesReleased(token);
         } catch (RemoteException e) {
         }
     }
@@ -2687,10 +2690,10 @@ public final class ActivityThread {
 
         String component = data.intent.getComponent().getClassName();
 
-        LoadedApk packageInfo = getPackageInfoNoCheck(
+        android.app.LoadedApk packageInfo = getPackageInfoNoCheck(
                 data.info.applicationInfo, data.compatInfo);
 
-        IActivityManager mgr = ActivityManagerNative.getDefault();
+        android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
 
         BroadcastReceiver receiver;
         try {
@@ -2764,7 +2767,7 @@ public final class ActivityThread {
         unscheduleGcIdler();
 
         // instantiate the BackupAgent class named in the manifest
-        LoadedApk packageInfo = getPackageInfoNoCheck(data.appInfo, data.compatInfo);
+        android.app.LoadedApk packageInfo = getPackageInfoNoCheck(data.appInfo, data.compatInfo);
         String packageName = packageInfo.mPackageName;
         if (packageName == null) {
             Slog.d(TAG, "Asked to create backup agent for nonexistent package");
@@ -2773,8 +2776,8 @@ public final class ActivityThread {
 
         String classname = data.appInfo.backupAgentName;
         // full backup operation but no app-supplied agent?  use the default implementation
-        if (classname == null && (data.backupMode == IApplicationThread.BACKUP_MODE_FULL
-                || data.backupMode == IApplicationThread.BACKUP_MODE_RESTORE_FULL)) {
+        if (classname == null && (data.backupMode == android.app.IApplicationThread.BACKUP_MODE_FULL
+                || data.backupMode == android.app.IApplicationThread.BACKUP_MODE_RESTORE_FULL)) {
             classname = "android.app.backup.FullBackupAgent";
         }
 
@@ -2806,8 +2809,8 @@ public final class ActivityThread {
                     // If this is during restore, fail silently; otherwise go
                     // ahead and let the user see the crash.
                     Slog.e(TAG, "Agent threw during creation: " + e);
-                    if (data.backupMode != IApplicationThread.BACKUP_MODE_RESTORE
-                            && data.backupMode != IApplicationThread.BACKUP_MODE_RESTORE_FULL) {
+                    if (data.backupMode != android.app.IApplicationThread.BACKUP_MODE_RESTORE
+                            && data.backupMode != android.app.IApplicationThread.BACKUP_MODE_RESTORE_FULL) {
                         throw e;
                     }
                     // falling through with 'binder' still null
@@ -2816,7 +2819,7 @@ public final class ActivityThread {
 
             // tell the OS that we're live now
             try {
-                ActivityManagerNative.getDefault().backupAgentCreated(packageName, binder);
+                android.app.ActivityManagerNative.getDefault().backupAgentCreated(packageName, binder);
             } catch (RemoteException e) {
                 // nothing to do.
             }
@@ -2830,7 +2833,7 @@ public final class ActivityThread {
     private void handleDestroyBackupAgent(CreateBackupAgentData data) {
         if (DEBUG_BACKUP) Slog.v(TAG, "handleDestroyBackupAgent: " + data);
 
-        LoadedApk packageInfo = getPackageInfoNoCheck(data.appInfo, data.compatInfo);
+        android.app.LoadedApk packageInfo = getPackageInfoNoCheck(data.appInfo, data.compatInfo);
         String packageName = packageInfo.mPackageName;
         BackupAgent agent = mBackupAgents.get(packageName);
         if (agent != null) {
@@ -2851,7 +2854,7 @@ public final class ActivityThread {
         // we are back active so skip it.
         unscheduleGcIdler();
 
-        LoadedApk packageInfo = getPackageInfoNoCheck(
+        android.app.LoadedApk packageInfo = getPackageInfoNoCheck(
                 data.info.applicationInfo, data.compatInfo);
         Service service = null;
         try {
@@ -2873,11 +2876,11 @@ public final class ActivityThread {
 
             Application app = packageInfo.makeApplication(false, mInstrumentation);
             service.attach(context, this, data.info.name, data.token, app,
-                    ActivityManagerNative.getDefault());
+                    android.app.ActivityManagerNative.getDefault());
             service.onCreate();
             mServices.put(data.token, service);
             try {
-                ActivityManagerNative.getDefault().serviceDoneExecuting(
+                android.app.ActivityManagerNative.getDefault().serviceDoneExecuting(
                         data.token, SERVICE_DONE_EXECUTING_ANON, 0, 0);
             } catch (RemoteException e) {
                 // nothing to do.
@@ -2902,11 +2905,11 @@ public final class ActivityThread {
                 try {
                     if (!data.rebind) {
                         IBinder binder = s.onBind(data.intent);
-                        ActivityManagerNative.getDefault().publishService(
+                        android.app.ActivityManagerNative.getDefault().publishService(
                                 data.token, data.intent, binder);
                     } else {
                         s.onRebind(data.intent);
-                        ActivityManagerNative.getDefault().serviceDoneExecuting(
+                        android.app.ActivityManagerNative.getDefault().serviceDoneExecuting(
                                 data.token, SERVICE_DONE_EXECUTING_ANON, 0, 0);
                     }
                     ensureJitEnabled();
@@ -2931,10 +2934,10 @@ public final class ActivityThread {
                 boolean doRebind = s.onUnbind(data.intent);
                 try {
                     if (doRebind) {
-                        ActivityManagerNative.getDefault().unbindFinished(
+                        android.app.ActivityManagerNative.getDefault().unbindFinished(
                                 data.token, data.intent, doRebind);
                     } else {
-                        ActivityManagerNative.getDefault().serviceDoneExecuting(
+                        android.app.ActivityManagerNative.getDefault().serviceDoneExecuting(
                                 data.token, SERVICE_DONE_EXECUTING_ANON, 0, 0);
                     }
                 } catch (RemoteException ex) {
@@ -3013,10 +3016,10 @@ public final class ActivityThread {
                     res = Service.START_TASK_REMOVED_COMPLETE;
                 }
 
-                QueuedWork.waitToFinish();
+                android.app.QueuedWork.waitToFinish();
 
                 try {
-                    ActivityManagerNative.getDefault().serviceDoneExecuting(
+                    android.app.ActivityManagerNative.getDefault().serviceDoneExecuting(
                             data.token, SERVICE_DONE_EXECUTING_START, data.startId, res);
                 } catch (RemoteException e) {
                     // nothing to do.
@@ -3044,10 +3047,10 @@ public final class ActivityThread {
                     ((ContextImpl) context).scheduleFinalCleanup(who, "Service");
                 }
 
-                QueuedWork.waitToFinish();
+                android.app.QueuedWork.waitToFinish();
 
                 try {
-                    ActivityManagerNative.getDefault().serviceDoneExecuting(
+                    android.app.ActivityManagerNative.getDefault().serviceDoneExecuting(
                             token, SERVICE_DONE_EXECUTING_STOP, 0, 0);
                 } catch (RemoteException e) {
                     // nothing to do.
@@ -3150,7 +3153,7 @@ public final class ActivityThread {
             boolean willBeVisible = !a.mStartedActivity;
             if (!willBeVisible) {
                 try {
-                    willBeVisible = ActivityManagerNative.getDefault().willActivityBeVisible(
+                    willBeVisible = android.app.ActivityManagerNative.getDefault().willActivityBeVisible(
                             a.getActivityToken());
                 } catch (RemoteException e) {
                 }
@@ -3230,7 +3233,7 @@ public final class ActivityThread {
             // Tell the activity manager we have resumed.
             if (reallyResume) {
                 try {
-                    ActivityManagerNative.getDefault().activityResumed(token);
+                    android.app.ActivityManagerNative.getDefault().activityResumed(token);
                 } catch (RemoteException ex) {
                 }
             }
@@ -3239,7 +3242,7 @@ public final class ActivityThread {
             // If an exception was thrown when trying to resume, then
             // just end this activity.
             try {
-                ActivityManagerNative.getDefault()
+                android.app.ActivityManagerNative.getDefault()
                     .finishActivity(token, Activity.RESULT_CANCELED, null, false);
             } catch (RemoteException ex) {
             }
@@ -3316,13 +3319,13 @@ public final class ActivityThread {
 
             // Make sure any pending writes are now committed.
             if (r.isPreHoneycomb()) {
-                QueuedWork.waitToFinish();
+                android.app.QueuedWork.waitToFinish();
             }
 
             // Tell the activity manager we have paused.
             if (!dontReport) {
                 try {
-                    ActivityManagerNative.getDefault().activityPaused(token);
+                    android.app.ActivityManagerNative.getDefault().activityPaused(token);
                 } catch (RemoteException ex) {
                 }
             }
@@ -3387,7 +3390,7 @@ public final class ActivityThread {
         r.paused = true;
 
         // Notify any outstanding on paused listeners
-        ArrayList<OnActivityPausedListener> listeners;
+        ArrayList<android.app.OnActivityPausedListener> listeners;
         synchronized (mOnPauseListeners) {
             listeners = mOnPauseListeners.remove(r.activity);
         }
@@ -3414,7 +3417,7 @@ public final class ActivityThread {
             // Tell activity manager we have been stopped.
             try {
                 if (DEBUG_MEMORY_TRIM) Slog.v(TAG, "Reporting activity stopped: " + activity);
-                ActivityManagerNative.getDefault().activityStopped(
+                android.app.ActivityManagerNative.getDefault().activityStopped(
                     activity.token, state, persistentState, description);
             } catch (RemoteException ex) {
             }
@@ -3422,7 +3425,7 @@ public final class ActivityThread {
     }
 
     private static final class ProviderRefCount {
-        public final IActivityManager.ContentProviderHolder holder;
+        public final android.app.IActivityManager.ContentProviderHolder holder;
         public final ProviderClientRecord client;
         public int stableCount;
         public int unstableCount;
@@ -3434,7 +3437,7 @@ public final class ActivityThread {
         // here.
         public boolean removePending;
 
-        ProviderRefCount(IActivityManager.ContentProviderHolder inHolder,
+        ProviderRefCount(android.app.IActivityManager.ContentProviderHolder inHolder,
                 ProviderClientRecord inClient, int sCount, int uCount) {
             holder = inHolder;
             client = inClient;
@@ -3557,7 +3560,7 @@ public final class ActivityThread {
 
         // Make sure any pending writes are now committed.
         if (!r.isPreHoneycomb()) {
-            QueuedWork.waitToFinish();
+            android.app.QueuedWork.waitToFinish();
         }
 
         // Schedule the call to tell the activity manager we have
@@ -3632,12 +3635,12 @@ public final class ActivityThread {
 
             // Make sure any pending writes are now committed.
             if (!r.isPreHoneycomb()) {
-                QueuedWork.waitToFinish();
+                android.app.QueuedWork.waitToFinish();
             }
 
             // Tell activity manager we slept.
             try {
-                ActivityManagerNative.getDefault().activitySlept(r.token);
+                android.app.ActivityManagerNative.getDefault().activitySlept(r.token);
             } catch (RemoteException ex) {
             }
         } else {
@@ -3669,7 +3672,7 @@ public final class ActivityThread {
     }
 
     private void handleUpdatePackageCompatibilityInfo(UpdateCompatibilityData data) {
-        LoadedApk apk = peekPackageInfo(data.pkg, false);
+        android.app.LoadedApk apk = peekPackageInfo(data.pkg, false);
         if (apk != null) {
             apk.setCompatibilityInfo(data.info);
         }
@@ -3681,10 +3684,10 @@ public final class ActivityThread {
         WindowManagerGlobal.getInstance().reportNewConfiguration(mConfiguration);
     }
 
-    private void deliverResults(ActivityClientRecord r, List<ResultInfo> results) {
+    private void deliverResults(ActivityClientRecord r, List<android.app.ResultInfo> results) {
         final int N = results.size();
         for (int i=0; i<N; i++) {
-            ResultInfo ri = results.get(i);
+            android.app.ResultInfo ri = results.get(i);
             try {
                 if (ri.mData != null) {
                     ri.mData.setExtrasClassLoader(r.activity.getClassLoader());
@@ -3896,7 +3899,7 @@ public final class ActivityThread {
         }
         if (finishing) {
             try {
-                ActivityManagerNative.getDefault().activityDestroyed(token);
+                android.app.ActivityManagerNative.getDefault().activityDestroyed(token);
             } catch (RemoteException ex) {
                 // If the system process has died, it's game over for everyone.
             }
@@ -3905,7 +3908,7 @@ public final class ActivityThread {
     }
 
     public final void requestRelaunchActivity(IBinder token,
-            List<ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
+            List<android.app.ResultInfo> pendingResults, List<ReferrerIntent> pendingNewIntents,
             int configChanges, boolean notResumed, Configuration config,
             Configuration overrideConfig, boolean fromServer) {
         ActivityClientRecord target = null;
@@ -4281,7 +4284,7 @@ public final class ActivityThread {
         mSomeActivitiesChanged = true;
     }
 
-    final void handleProfilerControl(boolean start, ProfilerInfo profilerInfo, int profileType) {
+    final void handleProfilerControl(boolean start, android.app.ProfilerInfo profilerInfo, int profileType) {
         if (start) {
             try {
                 switch (profileType) {
@@ -4327,7 +4330,7 @@ public final class ActivityThread {
             Debug.dumpNativeHeap(dhd.fd.getFileDescriptor());
         }
         try {
-            ActivityManagerNative.getDefault().dumpHeapFinished(dhd.path);
+            android.app.ActivityManagerNative.getDefault().dumpHeapFinished(dhd.path);
         } catch (RemoteException e) {
         }
     }
@@ -4339,7 +4342,7 @@ public final class ActivityThread {
                 for (int i=packages.length-1; i>=0; i--) {
                     //Slog.i(TAG, "Cleaning old package: " + packages[i]);
                     if (!hasPkgInfo) {
-                        WeakReference<LoadedApk> ref;
+                        WeakReference<android.app.LoadedApk> ref;
                         ref = mPackages.get(packages[i]);
                         if (ref != null && ref.get() != null) {
                             hasPkgInfo = true;
@@ -4395,7 +4398,7 @@ public final class ActivityThread {
         WindowManagerGlobal.getInstance().trimMemory(level);
     }
 
-    private void setupGraphicsSupport(LoadedApk info, File cacheDir) {
+    private void setupGraphicsSupport(android.app.LoadedApk info, File cacheDir) {
         if (Process.isIsolated()) {
             // Isolated processes aren't going to do UI.
             return;
@@ -4553,14 +4556,14 @@ public final class ActivityThread {
         NetworkSecurityPolicy.getInstance().setCleartextTrafficPermitted(
                 (data.appInfo.flags & ApplicationInfo.FLAG_USES_CLEARTEXT_TRAFFIC) != 0);
 
-        if (data.debugMode != IApplicationThread.DEBUG_OFF) {
+        if (data.debugMode != android.app.IApplicationThread.DEBUG_OFF) {
             // XXX should have option to change the port.
             Debug.changeDebugPort(8100);
-            if (data.debugMode == IApplicationThread.DEBUG_WAIT) {
+            if (data.debugMode == android.app.IApplicationThread.DEBUG_WAIT) {
                 Slog.w(TAG, "Application " + data.info.getPackageName()
                       + " is waiting for the debugger on port 8100...");
 
-                IActivityManager mgr = ActivityManagerNative.getDefault();
+                android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
                 try {
                     mgr.showWaitingForDebugger(mAppThread, true);
                 } catch (RemoteException ex) {
@@ -4632,7 +4635,7 @@ public final class ActivityThread {
             instrApp.splitPublicSourceDirs = ii.splitPublicSourceDirs;
             instrApp.dataDir = ii.dataDir;
             instrApp.nativeLibraryDir = ii.nativeLibraryDir;
-            LoadedApk pi = getPackageInfo(instrApp, data.compatInfo,
+            android.app.LoadedApk pi = getPackageInfo(instrApp, data.compatInfo,
                     appContext.getClassLoader(), false, true, false);
             ContextImpl instrContext = ContextImpl.createAppContext(this, pi);
 
@@ -4718,7 +4721,7 @@ public final class ActivityThread {
     }
 
     /*package*/ final void finishInstrumentation(int resultCode, Bundle results) {
-        IActivityManager am = ActivityManagerNative.getDefault();
+        android.app.IActivityManager am = android.app.ActivityManagerNative.getDefault();
         if (mProfiler.profileFile != null && mProfiler.handlingProfiling
                 && mProfiler.profileFd == null) {
             Debug.stopMethodTracing();
@@ -4733,8 +4736,8 @@ public final class ActivityThread {
 
     private void installContentProviders(
             Context context, List<ProviderInfo> providers) {
-        final ArrayList<IActivityManager.ContentProviderHolder> results =
-            new ArrayList<IActivityManager.ContentProviderHolder>();
+        final ArrayList<android.app.IActivityManager.ContentProviderHolder> results =
+            new ArrayList<android.app.IActivityManager.ContentProviderHolder>();
 
         for (ProviderInfo cpi : providers) {
             if (DEBUG_PROVIDER) {
@@ -4745,7 +4748,7 @@ public final class ActivityThread {
                 buf.append(cpi.name);
                 Log.i(TAG, buf.toString());
             }
-            IActivityManager.ContentProviderHolder cph = installProvider(context, null, cpi,
+            android.app.IActivityManager.ContentProviderHolder cph = installProvider(context, null, cpi,
                     false /*noisy*/, true /*noReleaseNeeded*/, true /*stable*/);
             if (cph != null) {
                 cph.noReleaseNeeded = true;
@@ -4754,7 +4757,7 @@ public final class ActivityThread {
         }
 
         try {
-            ActivityManagerNative.getDefault().publishContentProviders(
+            android.app.ActivityManagerNative.getDefault().publishContentProviders(
                 getApplicationThread(), results);
         } catch (RemoteException ex) {
         }
@@ -4773,9 +4776,9 @@ public final class ActivityThread {
         // Note that we cannot hold the lock while acquiring and installing the
         // provider since it might take a long time to run and it could also potentially
         // be re-entrant in the case where the provider is in the same process.
-        IActivityManager.ContentProviderHolder holder = null;
+        android.app.IActivityManager.ContentProviderHolder holder = null;
         try {
-            holder = ActivityManagerNative.getDefault().getContentProvider(
+            holder = android.app.ActivityManagerNative.getDefault().getContentProvider(
                     getApplicationThread(), auth, userId, stable);
         } catch (RemoteException ex) {
         }
@@ -4820,7 +4823,7 @@ public final class ActivityThread {
                                 + prc.holder.info.name + ": unstableDelta="
                                 + unstableDelta);
                     }
-                    ActivityManagerNative.getDefault().refContentProvider(
+                    android.app.ActivityManagerNative.getDefault().refContentProvider(
                             prc.holder.connection, 1, unstableDelta);
                 } catch (RemoteException e) {
                     //do nothing content provider object is dead any way
@@ -4849,7 +4852,7 @@ public final class ActivityThread {
                             Slog.v(TAG, "incProviderRef: Now unstable - "
                                     + prc.holder.info.name);
                         }
-                        ActivityManagerNative.getDefault().refContentProvider(
+                        android.app.ActivityManagerNative.getDefault().refContentProvider(
                                 prc.holder.connection, 0, 1);
                     } catch (RemoteException e) {
                         //do nothing content provider object is dead any way
@@ -4923,7 +4926,7 @@ public final class ActivityThread {
                             Slog.v(TAG, "releaseProvider: No longer stable w/lastRef="
                                     + lastRef + " - " + prc.holder.info.name);
                         }
-                        ActivityManagerNative.getDefault().refContentProvider(
+                        android.app.ActivityManagerNative.getDefault().refContentProvider(
                                 prc.holder.connection, -1, lastRef ? 1 : 0);
                     } catch (RemoteException e) {
                         //do nothing content provider object is dead any way
@@ -4947,7 +4950,7 @@ public final class ActivityThread {
                                 Slog.v(TAG, "releaseProvider: No longer unstable - "
                                         + prc.holder.info.name);
                             }
-                            ActivityManagerNative.getDefault().refContentProvider(
+                            android.app.ActivityManagerNative.getDefault().refContentProvider(
                                     prc.holder.connection, 0, -1);
                         } catch (RemoteException e) {
                             //do nothing content provider object is dead any way
@@ -5014,7 +5017,7 @@ public final class ActivityThread {
                 Slog.v(TAG, "removeProvider: Invoking ActivityManagerNative."
                         + "removeContentProvider(" + prc.holder.info.name + ")");
             }
-            ActivityManagerNative.getDefault().removeContentProvider(
+            android.app.ActivityManagerNative.getDefault().removeContentProvider(
                     prc.holder.connection, false);
         } catch (RemoteException e) {
             //do nothing content provider object is dead any way
@@ -5048,7 +5051,7 @@ public final class ActivityThread {
                 // it knows it is dead (so we don't race with its death
                 // notification).
                 try {
-                    ActivityManagerNative.getDefault().unstableProviderDied(
+                    android.app.ActivityManagerNative.getDefault().unstableProviderDied(
                             prc.holder.connection);
                 } catch (RemoteException e) {
                     //do nothing content provider object is dead any way
@@ -5062,7 +5065,7 @@ public final class ActivityThread {
             ProviderRefCount prc = mProviderRefCountMap.get(provider);
             if (prc != null) {
                 try {
-                    ActivityManagerNative.getDefault()
+                    android.app.ActivityManagerNative.getDefault()
                             .appNotRespondingViaProvider(prc.holder.connection);
                 } catch (RemoteException e) {
                 }
@@ -5071,7 +5074,7 @@ public final class ActivityThread {
     }
 
     private ProviderClientRecord installProviderAuthoritiesLocked(IContentProvider provider,
-            ContentProvider localProvider, IActivityManager.ContentProviderHolder holder) {
+            ContentProvider localProvider, android.app.IActivityManager.ContentProviderHolder holder) {
         final String auths[] = holder.info.authority.split(";");
         final int userId = UserHandle.getUserId(holder.info.applicationInfo.uid);
 
@@ -5104,8 +5107,8 @@ public final class ActivityThread {
      * and returns the existing provider.  This can happen due to concurrent
      * attempts to acquire the same provider.
      */
-    private IActivityManager.ContentProviderHolder installProvider(Context context,
-            IActivityManager.ContentProviderHolder holder, ProviderInfo info,
+    private android.app.IActivityManager.ContentProviderHolder installProvider(Context context,
+            android.app.IActivityManager.ContentProviderHolder holder, ProviderInfo info,
             boolean noisy, boolean noReleaseNeeded, boolean stable) {
         ContentProvider localProvider = null;
         IContentProvider provider;
@@ -5165,7 +5168,7 @@ public final class ActivityThread {
                     + info.name);
         }
 
-        IActivityManager.ContentProviderHolder retHolder;
+        android.app.IActivityManager.ContentProviderHolder retHolder;
 
         synchronized (mProviderMap) {
             if (DEBUG_PROVIDER) Slog.v(TAG, "Checking to add " + provider
@@ -5181,7 +5184,7 @@ public final class ActivityThread {
                     }
                     provider = pr.mProvider;
                 } else {
-                    holder = new IActivityManager.ContentProviderHolder(info);
+                    holder = new android.app.IActivityManager.ContentProviderHolder(info);
                     holder.provider = provider;
                     holder.noReleaseNeeded = true;
                     pr = installProviderAuthoritiesLocked(provider, localProvider, holder);
@@ -5202,7 +5205,7 @@ public final class ActivityThread {
                     if (!noReleaseNeeded) {
                         incProviderRefLocked(prc, stable);
                         try {
-                            ActivityManagerNative.getDefault().removeContentProvider(
+                            android.app.ActivityManagerNative.getDefault().removeContentProvider(
                                     holder.connection, stable);
                         } catch (RemoteException e) {
                             //do nothing content provider object is dead any way
@@ -5240,7 +5243,7 @@ public final class ActivityThread {
             android.ddm.DdmHandleAppName.setAppName("<pre-initialized>",
                                                     UserHandle.myUserId());
             RuntimeInit.setApplicationObject(mAppThread.asBinder());
-            final IActivityManager mgr = ActivityManagerNative.getDefault();
+            final android.app.IActivityManager mgr = android.app.ActivityManagerNative.getDefault();
             try {
                 mgr.attachApplication(mAppThread);
             } catch (RemoteException ex) {
